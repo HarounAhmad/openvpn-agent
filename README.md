@@ -30,7 +30,7 @@ It also accepts local commands (e.g., kick a client) via a Unix domain socket.
 Download the latest release binary:
 
 ```bash
-curl -L https://github.com/<youruser>/openvpn-agent/releases/latest/download/openvpn-agent-linux-amd64 -o /usr/local/bin/openvpn-agent
+curl -L https://github.com/HarounAhmad/openvpn-agent/releases/latest/download/openvpn-agent-linux-amd64 -o /usr/local/bin/openvpn-agent
 chmod +x /usr/local/bin/openvpn-agent
 ```
 
