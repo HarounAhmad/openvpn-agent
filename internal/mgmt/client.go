@@ -58,7 +58,7 @@ func FetchStatus() ([]pkg.Client, error) {
 		if strings.HasPrefix(line, "ROUTING_TABLE") {
 			fields := strings.Split(line, "\t")
 			if len(fields) >= 2 {
-				routingSet[fields[0]] = true // vpn_ip
+				routingSet[fields[1]] = true // vpn_ip
 			}
 		}
 	}
