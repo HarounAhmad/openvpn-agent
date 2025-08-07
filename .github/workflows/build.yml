@@ -1,18 +1,18 @@
-name: Build and Release
+name: Auto Build & Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Release Binary
+  release:
+    name: Auto Tag and Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Go
@@ -20,13 +20,22 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Build for Linux AMD64
+      - name: Generate tag (semver bump)
+        id: tagger
+        uses: anothrnick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch  # can be: patch / minor / major
+
+      - name: Build binary
         run: |
           GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o openvpn-agent-linux-amd64 ./cmd/agent
 
-      - name: Upload Release Binary
+      - name: Upload GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tagger.outputs.new_tag }}
           files: openvpn-agent-linux-amd64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
