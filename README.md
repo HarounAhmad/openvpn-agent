@@ -16,7 +16,7 @@ It also accepts local commands (e.g., kick a client) via a Unix domain socket.
 ---
 
 ## Requirements
-- Go 1.22+
+- Go 1.24.2+
 - OpenVPN server with management interface enabled:
   ```bash
   management 127.0.0.1 7505
