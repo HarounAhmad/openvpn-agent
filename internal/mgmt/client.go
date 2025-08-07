@@ -39,17 +39,17 @@ func FetchStatus() ([]pkg.Client, error) {
 			break
 		}
 		if strings.HasPrefix(line, "CLIENT_LIST") {
-			fields := strings.Split(line, ",")
-			if len(fields) < 7 {
+			fields := strings.Split(line, "\t")
+			if len(fields) < 8 {
 				continue
 			}
 			client := pkg.Client{
 				CN:             fields[1],
 				RealIP:         strings.Split(fields[2], ":")[0],
 				VpnIP:          fields[3],
-				BytesIn:        parseInt64(fields[4]),
-				BytesOut:       parseInt64(fields[5]),
-				ConnectedSince: fields[6],
+				BytesIn:        parseInt64(fields[5]),
+				BytesOut:       parseInt64(fields[6]),
+				ConnectedSince: fields[7],
 			}
 			clients = append(clients, client)
 		}
