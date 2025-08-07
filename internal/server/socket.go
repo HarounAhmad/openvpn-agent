@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const SocketPath = "/var/run/openvpn-agent.sock"
+const SocketPath = "/var/run/openvpn/agent.sock"
 
 func StartServer(stop <-chan struct{}) error {
 
