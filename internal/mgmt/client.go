@@ -32,7 +32,9 @@ func FetchStatus() ([]pkg.Client, error) {
 
 	fmt.Fprintf(conn, "status 3\n")
 
-	var clients []pkg.Client
+	var clientsRaw []pkg.Client
+	routingSet := make(map[string]bool) // map of vpn_ip -> true
+
 	for reader.Scan() {
 		line := reader.Text()
 		if line == "END" {
@@ -51,11 +53,24 @@ func FetchStatus() ([]pkg.Client, error) {
 				BytesOut:       parseInt64(fields[6]),
 				ConnectedSince: fields[7],
 			}
-			clients = append(clients, client)
+			clientsRaw = append(clientsRaw, client)
+		}
+		if strings.HasPrefix(line, "ROUTING_TABLE") {
+			fields := strings.Split(line, "\t")
+			if len(fields) >= 2 {
+				routingSet[fields[0]] = true // vpn_ip
+			}
 		}
 	}
 	if err := reader.Err(); err != nil {
 		return nil, fmt.Errorf("read mgmt: %w", err)
+	}
+
+	var clients []pkg.Client
+	for _, c := range clientsRaw {
+		if routingSet[c.VpnIP] {
+			clients = append(clients, c)
+		}
 	}
 	return clients, nil
 }
