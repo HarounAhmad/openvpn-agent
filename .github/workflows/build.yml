@@ -1,0 +1,32 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Release Binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build for Linux AMD64
+        run: |
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o openvpn-agent-linux-amd64 ./cmd/agent
+
+      - name: Upload Release Binary
+        uses: softprops/action-gh-release@v1
+        with:
+          files: openvpn-agent-linux-amd64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

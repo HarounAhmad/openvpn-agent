@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenVPN Management Agent
+After=network.target openvpn-server@server.service
+Requires=openvpn-server@server.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/openvpn-agent
+Restart=on-failure
+User=root
+Group=openvpn
+RuntimeDirectory=openvpn-agent
+RuntimeDirectoryMode=0750
+
+[Install]
+WantedBy=multi-user.target
