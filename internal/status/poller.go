@@ -3,10 +3,12 @@ package status
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"time"
-
 	"github.com/HarounAhmad/openvpn-agent/internal/mgmt"
+	"github.com/HarounAhmad/openvpn-agent/internal/server"
+	"os"
+	"os/user"
+	"strconv"
+	"time"
 )
 
 const (
@@ -18,7 +20,8 @@ const (
 func StartPoller(stop <-chan struct{}) {
 	ticker := time.NewTicker(PollInterval)
 	defer ticker.Stop()
-
+	os.Chown(server.SocketPath, uidOf("openvpn-agent"), gidOf("openvpn-access"))
+	os.Chmod(server.SocketPath, 0660)
 	for {
 		select {
 		case <-ticker.C:
@@ -55,4 +58,28 @@ func updateStatus() {
 	if err := os.Rename(tmp, OutputFile); err != nil {
 		fmt.Fprintf(os.Stderr, "rename error: %v\n", err)
 	}
+}
+
+func uidOf(username string) int {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return -1
+	}
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return -1
+	}
+	return uid
+}
+
+func gidOf(groupname string) int {
+	g, err := user.LookupGroup(groupname)
+	if err != nil {
+		return -1
+	}
+	gid, err := strconv.Atoi(g.Gid)
+	if err != nil {
+		return -1
+	}
+	return gid
 }

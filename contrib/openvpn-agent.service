@@ -7,10 +7,13 @@ Requires=openvpn-server@server.service
 Type=simple
 ExecStart=/usr/local/bin/openvpn-agent
 Restart=on-failure
-User=root
-Group=openvpn
+User=openvpn-agent
+Group=openvpn-agent
+ExecStart=/usr/local/bin/openvpn-agent
 RuntimeDirectory=openvpn-agent
 RuntimeDirectoryMode=0750
+ReadWritePaths=/var/lib/openvpn/
+ReadWritePaths=/run/openvpn-agent/
 
 [Install]
 WantedBy=multi-user.target

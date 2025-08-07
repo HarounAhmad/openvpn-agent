@@ -4,18 +4,17 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"net"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/HarounAhmad/openvpn-agent/internal/mgmt"
 	"github.com/HarounAhmad/openvpn-agent/pkg"
+	"net"
+	"os"
+	"os/user"
+	"strconv"
+	"strings"
+	"time"
 )
 
-const (
-	SocketPath = "/var/run/openvpn-agent.sock"
-)
+const SocketPath = "/var/run/openvpn-agent.sock"
 
 // StartServer binds the Unix domain socket and serves command requests
 func StartServer(stop <-chan struct{}) error {
@@ -31,6 +30,7 @@ func StartServer(stop <-chan struct{}) error {
 	defer l.Close()
 
 	// Secure permissions: rw for owner and group only
+	os.Chown(SocketPath, uidOf("openvpn-agent"), gidOf("openvpn-access"))
 	os.Chmod(SocketPath, 0660)
 
 	for {
@@ -100,4 +100,27 @@ func nextDeadline() (t time.Time) {
 func isTimeout(err error) bool {
 	netErr, ok := err.(net.Error)
 	return ok && netErr.Timeout()
+}
+func uidOf(username string) int {
+	u, err := user.Lookup(username)
+	if err != nil {
+		return -1
+	}
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return -1
+	}
+	return uid
+}
+
+func gidOf(groupname string) int {
+	g, err := user.LookupGroup(groupname)
+	if err != nil {
+		return -1
+	}
+	gid, err := strconv.Atoi(g.Gid)
+	if err != nil {
+		return -1
+	}
+	return gid
 }

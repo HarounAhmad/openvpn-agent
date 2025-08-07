@@ -56,6 +56,15 @@ Or use the included systemd unit:
 
 ```bash
 sudo cp contrib/openvpn-agent.service /etc/systemd/system/
+
+# create a dedicated user 
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin openvpn-agent
+
+# ensure OpenVPN user has access to the agent
+sudo groupadd openvpn-access
+sudo usermod -aG openvpn-access openvpn-agent
+sudo usermod -aG openvpn-access javauser
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now openvpn-agent
 ```
