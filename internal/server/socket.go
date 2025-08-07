@@ -16,9 +16,8 @@ import (
 
 const SocketPath = "/var/run/openvpn-agent.sock"
 
-// StartServer binds the Unix domain socket and serves command requests
 func StartServer(stop <-chan struct{}) error {
-	// Cleanup if stale socket exists
+
 	if _, err := os.Stat(SocketPath); err == nil {
 		os.Remove(SocketPath)
 	}
@@ -29,7 +28,6 @@ func StartServer(stop <-chan struct{}) error {
 	}
 	defer l.Close()
 
-	// Secure permissions: rw for owner and group only
 	os.Chown(SocketPath, uidOf("openvpn-agent"), gidOf("openvpn-access"))
 	os.Chmod(SocketPath, 0660)
 

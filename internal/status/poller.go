@@ -16,7 +16,6 @@ const (
 	PollInterval = 5 * time.Second
 )
 
-// StartPoller starts a background loop that writes JSON status every PollInterval.
 func StartPoller(stop <-chan struct{}) {
 	ticker := time.NewTicker(PollInterval)
 	defer ticker.Stop()

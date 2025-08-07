@@ -24,7 +24,6 @@ func FetchStatus() ([]pkg.Client, error) {
 
 	reader := bufio.NewScanner(conn)
 
-	// Discard banner
 	for reader.Scan() {
 		if strings.Contains(reader.Text(), "INFO:OpenVPN Management") {
 			break
@@ -69,7 +68,7 @@ func KickClient(cn string) error {
 	defer conn.Close()
 
 	reader := bufio.NewScanner(conn)
-	reader.Scan() // discard banner
+	reader.Scan()
 
 	cmd := fmt.Sprintf("kill %s\n", cn)
 	if _, err := fmt.Fprintf(conn, cmd); err != nil {

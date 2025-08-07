@@ -13,7 +13,6 @@ import (
 func main() {
 	stop := make(chan struct{})
 
-	// Handle shutdown signals (CTRL+C, SIGTERM)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -21,10 +20,8 @@ func main() {
 		close(stop)
 	}()
 
-	// Start status poller
 	go status.StartPoller(stop)
 
-	// Start command socket server
 	if err := server.StartServer(stop); err != nil {
 		fmt.Fprintf(os.Stderr, "server error: %v\n", err)
 		os.Exit(1)
