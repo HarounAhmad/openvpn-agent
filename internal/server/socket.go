@@ -11,15 +11,20 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
 const SocketPath = "/var/run/openvpn/agent.sock"
+const agentUser = "openvpn-agent"
+const agentGroup = "agent-access"
 
 func StartServer(stop <-chan struct{}) error {
+	syscall.Umask(0027)
 
+	// clean stale socket
 	if _, err := os.Stat(SocketPath); err == nil {
-		os.Remove(SocketPath)
+		_ = os.Remove(SocketPath)
 	}
 
 	l, err := net.Listen("unix", SocketPath)
@@ -28,18 +33,26 @@ func StartServer(stop <-chan struct{}) error {
 	}
 	defer l.Close()
 
-	os.Chown(SocketPath, uidOf("openvpn-agent"), gidOf("openvpn-access"))
-	os.Chmod(SocketPath, 0660)
+	uid := mustUID(agentUser)
+	gid := mustGID(agentGroup)
 
+	if err := os.Chown(SocketPath, uid, gid); err != nil {
+		return fmt.Errorf("chown socket: %w", err)
+	}
+	if err := os.Chmod(SocketPath, 0660); err != nil {
+		return fmt.Errorf("chmod socket: %w", err)
+	}
+
+	ul := l.(*net.UnixListener)
 	for {
 		select {
 		case <-stop:
 			return nil
 		default:
-			l.(*net.UnixListener).SetDeadline(nextDeadline())
-			conn, err := l.Accept()
+			_ = ul.SetDeadline(time.Now().Add(1 * time.Second))
+			conn, err := ul.Accept()
 			if err != nil {
-				if isTimeout(err) {
+				if ne, ok := err.(net.Error); ok && ne.Timeout() {
 					continue
 				}
 				fmt.Fprintf(os.Stderr, "accept error: %v\n", err)
@@ -99,26 +112,26 @@ func isTimeout(err error) bool {
 	netErr, ok := err.(net.Error)
 	return ok && netErr.Timeout()
 }
-func uidOf(username string) int {
-	u, err := user.Lookup(username)
+func mustUID(name string) int {
+	u, err := user.Lookup(name)
 	if err != nil {
-		return -1
+		panic(fmt.Errorf("uid lookup failed for %q: %w", name, err))
 	}
-	uid, err := strconv.Atoi(u.Uid)
+	id, err := strconv.Atoi(u.Uid)
 	if err != nil {
-		return -1
+		panic(fmt.Errorf("uid parse failed for %q: %w", name, err))
 	}
-	return uid
+	return id
 }
 
-func gidOf(groupname string) int {
-	g, err := user.LookupGroup(groupname)
+func mustGID(name string) int {
+	g, err := user.LookupGroup(name)
 	if err != nil {
-		return -1
+		panic(fmt.Errorf("gid lookup failed for %q: %w", name, err))
 	}
-	gid, err := strconv.Atoi(g.Gid)
+	id, err := strconv.Atoi(g.Gid)
 	if err != nil {
-		return -1
+		panic(fmt.Errorf("gid parse failed for %q: %w", name, err))
 	}
-	return gid
+	return id
 }
