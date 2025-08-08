@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/HarounAhmad/openvpn-agent/internal/mgmt"
-	"github.com/HarounAhmad/openvpn-agent/internal/server"
 	"os"
 	"os/user"
 	"strconv"
@@ -19,8 +18,8 @@ const (
 func StartPoller(stop <-chan struct{}) {
 	ticker := time.NewTicker(PollInterval)
 	defer ticker.Stop()
-	os.Chown(server.SocketPath, uidOf("openvpn-agent"), gidOf("openvpn-access"))
-	os.Chmod(server.SocketPath, 0660)
+	os.Chown("/var/lib/openvpn/clients.json", uidOf("openvpn-agent"), gidOf("agent-access"))
+	os.Chmod("/var/lib/openvpn/clients.json", 0660)
 	for {
 		select {
 		case <-ticker.C:
